@@ -63,7 +63,7 @@
 
         };
         const res = new  FileReader(blob)
-        res.readAsArrayBuffer(blob)
+        res.readAsArrayBuffer(blob) //有待改进?
         res.onload = function(e){
             console.log(e);
             console.log(this.result);
