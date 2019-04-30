@@ -1,0 +1,93 @@
+<html>
+<head>
+    <style>
+        body{
+            background-color: #bfa;
+        }
+        canvas{
+            border: 5px solid;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas" width="100" height="100">
+    不支持canvas
+</canvas>
+
+<form id="registSubmit" action="/img" method="post">
+    <input id="file1"  onchange="aa()" type="file" name="file1">
+    <input  onchange ="aa()" type="text" name="text2">
+    <input id="subm" type="submit" value="提交">
+</form>
+
+<script>
+   function aa (e){
+       console.log(e);
+   }
+   document.querySelector('#subm').onclick = e=>{
+       e.preventDefault()
+   }
+   document.querySelector('#file1').onchange =function (e){
+       console.log(e);
+       console.log(this.files[0]);
+       var formdata = new FormData();
+       formdata.append('user', this.files[0]);
+       // const res = new  FileReader()
+       // res.readAsArrayBuffer(this.files[0])
+       // res.onload = function(blob){
+       //
+       // }
+       const xml = new XMLHttpRequest()
+       xml.open('POST','./img')
+       console.log(formdata,'上传了');
+       xml.send(formdata)
+
+
+   }
+
+
+
+
+    var canvas = document.getElementById("canvas");
+    const context = canvas.getContext('2d')
+    context.fillText('你好',50,50)
+
+    canvas.toBlob(function(blob) {
+        var newImg = document.createElement("img"),
+            url = URL.createObjectURL(blob);
+        console.log(blob);
+        newImg.onload = function() {
+            // no longer need to read the blob so it's revoked
+            URL.revokeObjectURL(url);
+
+        };
+        const res = new  FileReader(blob)
+        res.readAsArrayBuffer(blob)
+        res.onload = function(e){
+            console.log(e);
+            console.log(this.result);
+
+            var formdata = new FormData();
+            formdata.append('user', blob);
+            formdata.append('use2r', 2);
+
+            // const res = new  FileReader()
+            // res.readAsArrayBuffer(this.files[0])
+            // res.onload = function(blob){
+            //
+            // }
+            const xml = new XMLHttpRequest()
+            xml.open('POST','./img')
+            console.log(formdata,'上传了');
+            xml.send(formdata)
+
+
+        }
+        console.log(res);
+        newImg.src = url;
+        document.body.appendChild(newImg);
+    });
+</script>
+</body>
+</html>
