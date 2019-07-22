@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body{
+            background-color: #bfa;
+            padding:3% 20%;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>文件上传进度测试</title>
+</head>
+<body>
+<form action="/img" method="post" enctype="multipart/form-data">
+    <input multiple name="file1" type="file" id="file" onchange="selectFile()"/>
+    <input name="text1" type="text" id="text1"/>
+    <p>
+        <span>已经上传: <span id="num">0</span>%</span>
+        <button type="submit">开始上传</button>
+    </p>
+</form>
+<p>文件信息:</p>
+<p>name:&nbsp;&nbsp;<span id="info_name"></span></p>
+<p>size:&nbsp;&nbsp;<span id="info_size"></span></p>
+<p>type:&nbsp;&nbsp;<span id="info_type"></span></p>
+<p id="result"></p>
+</body>
+<!--计算文件MD5值-->
+<script src="https://cdn.bootcss.com/spark-md5/3.0.0/spark-md5.js"></script>
+<script type="text/javascript">
+    const fileNode = document.querySelector('#file')
+    const numNode = document.querySelector('#num')
+    const info_name = document.querySelector('#info_name')
+    const info_size = document.querySelector('#info_size')
+    const info_type = document.querySelector('#info_type')
+    function selectFile(){ //选择了文件
+        console.log(fileNode.files);
+        const file1 = fileNode.files[0]
+        if(!fileNode.files.length){return}  //如果没有选文件 则退出
+//         if(!fileNode.files.length){
+//             const form = new FormData()
+//             form.append('user',fileNode.files[0])
+//
+//             const xhr = new XMLHttpRequest()
+//             xhr.open('POST','/img')
+//             xhr.send(form)
+// return
+//
+//         }
+        info_name.innerText=file1.name
+            info_size.innerText=formatSize(file1.size)
+            info_type.innerText=file1.type
+        const form = new FormData()
+        form.append('user',file1,'新名字.aa')
+        form.append('file_name',file1.name)
+                //测试 文件重新命名时间
+                // const newFile = new File([file1], 'aa.zip',{type:file1.type,lastModified:file1.lastModified})
+                // console.log(newFile);
+                 // form.append('user',newFile)
+        //文件MD5值
+                var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+                    file = fileNode.files[0],
+                    chunkSize = 2097152,                             // Read in chunks of 2MB
+                    chunks = Math.ceil(file.size / chunkSize),
+                    currentChunk = 0,
+                    spark = new SparkMD5.ArrayBuffer(),
+                    fileReader = new FileReader();
+
+                fileReader.onload = function (e) {
+                    console.log('read chunk nr', currentChunk + 1, 'of', chunks);
+                    spark.append(e.target.result);                   // Append array buffer
+                    currentChunk++;
+
+                    if (currentChunk < chunks) {
+                        loadNext();
+                    } else {
+                        console.log('finished loading');
+                        console.info('computed hash', spark.end());  // Compute hash  //打印MD5值
+                    }
+                };
+
+                fileReader.onerror = function () {
+                    console.warn('oops, something went wrong.');
+                };
+
+                function loadNext() {
+                    var start = currentChunk * chunkSize,
+                        end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+
+                    fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+                }
+
+                loadNext();
+
+        //创建AJAX上传
+        // console.log(form.get('file_name'));
+        // const xhr = new XMLHttpRequest()
+        // xhr.open('POST','/img')
+        // xhr.upload.addEventListener("progress", uploadProgress, false);
+        // xhr.addEventListener("load", uploadComplete, false);
+        // xhr.send(form)
+    }
+
+    function uploadProgress(evt) {
+        console.log('uploadProgress',evt);
+        if (evt.lengthComputable) {
+                        var percent = Math.round(evt.loaded * 100 / evt.total);
+                            numNode.innerHTML = percent.toFixed(2);
+                            // document.getElementById('progress').style.width = percent.toFixed(2) + '%';
+                       }
+                    else {
+                             // document.getElementById('progress').innerHTML = 'unable to compute';
+                         }
+                 }
+    function uploadComplete(evt) {
+        console.log('uploadComplete',evt);
+        /* 服务器端返回响应时候触发event事件*/
+                     document.getElementById('result').innerHTML = evt.target.responseText;
+                 }
+
+
+function formatSize(size){
+        if(size<(1024*1024)){
+                return (size/1024).toFixed(2) +' KB'
+        }else{
+            return (size/1024/1024).toFixed(2) + ' MB'
+        }
+    }
+</script>
+</html>
